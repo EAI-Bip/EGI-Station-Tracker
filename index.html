@@ -842,6 +842,7 @@ var stations = [
     host: 'datacollection1',
     connection: 'Wired',
     mobility: 'Yes (Aloha)',
+    cameras: '0',
     task: 'No task currently',
     robots: [
       { role: 'Leader', model: 'Used for 2m table', payload: '250', span: '1300', isUR: false },
@@ -856,6 +857,7 @@ var stations = [
     host: 'dc4',
     connection: 'Wired',
     mobility: 'Yes (Aloha)',
+    cameras: '0',
     task: 'PBS Bottle Task',
     robots: [
       { role: 'Leader', model: 'WidowX', payload: '250', span: '1300', isUR: false },
@@ -870,6 +872,7 @@ var stations = [
     host: 'dc3',
     connection: 'Isolated',
     mobility: 'No',
+    cameras: '0',
     task: 'Currently not operational',
     robots: [
       { role: 'Leader', model: 'Denso', payload: '500', span: '685', isUR: false },
@@ -884,6 +887,7 @@ var stations = [
     host: 'dc6',
     connection: 'Isolated',
     mobility: 'No',
+    cameras: '0',
     task: 'Testing (LeRobot v0.4.3)',
     robots: [
       { role: 'Leader 1', model: 'Piper', payload: '3000', span: '1000', isUR: false },
@@ -899,6 +903,7 @@ var stations = [
     host: 'dc2',
     connection: 'Isolated',
     mobility: 'No',
+    cameras: '0',
     task: 'Currently not operational, integrating',
     robots: [
       { role: 'Leader', model: 'None currently (Gello or Piper possible)', payload: '', span: '', isUR: false },
@@ -914,6 +919,7 @@ var stations = [
     host: 'dc8',
     connection: 'Isolated',
     mobility: 'No',
+    cameras: '0',
     task: 'Integrating',
     robots: [
       { role: 'Leader 1', model: 'WidowX (current)', payload: '250', span: '1300', isUR: false },
@@ -995,6 +1001,14 @@ function saveAllEdits(id) {
   // Save task
   var taskInput = document.getElementById('station-task-input-' + id);
   if (taskInput) { station.task = taskInput.value.trim(); }
+
+  // Save subtitle
+  var subtitleInput = document.getElementById('station-subtitle-input-' + id);
+  if (subtitleInput) { station.subtitle = subtitleInput.value.trim(); }
+
+  // Save cameras
+  var camerasInput = document.getElementById('station-cameras-input-' + id);
+  if (camerasInput) { station.cameras = camerasInput.value.trim() || '0'; }
 
   // Save UR arm IPs
   if (station) {
@@ -1267,8 +1281,12 @@ function renderDetail(id) {
   var icon = station.dual ? dualArmSvgLarge(st.online) : robotSvgLarge(st.online);
   var isEdit = editMode;
 
-  var subtitleHtml = station.subtitle
-    ? '<div class="detail-subtitle">' + station.subtitle + '</div>' : '';
+  var subtitleHtml = '';
+  if (isEdit) {
+    subtitleHtml = '<input class="edit-input" id="station-subtitle-input-' + id + '" type="text" value="' + (station.subtitle || '') + '" placeholder="e.g. LeRobot v0.4.3, Dev Workstation..." style="font-size:11px;padding:4px 8px;margin-top:4px;color:var(--cyan);text-transform:uppercase;letter-spacing:0.5px;max-width:260px;">';
+  } else {
+    subtitleHtml = station.subtitle ? '<div class="detail-subtitle">' + station.subtitle + '</div>' : '';
+  }
 
   var dpc = {
     'OPERATIONAL': { color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.2)' },
@@ -1389,7 +1407,13 @@ function renderDetail(id) {
               '<div class="info-label">Status</div>' +
               '<div class="info-value status-label" style="color:' + (st.online ? 'var(--green)' : 'var(--red)') + ';">' + label + '</div>' +
             '</div>' +
-            // Row 3: Mobility, Last Changed
+            // Row 3: Cameras, Mobility, Last Changed
+            '<div class="info-item">' +
+              '<div class="info-label">Cameras</div>' +
+              (isEdit
+                ? '<input class="edit-input" id="station-cameras-input-' + id + '" type="number" min="0" value="' + (station.cameras || '0') + '" placeholder="0" style="width:80px;">'
+                : '<div class="info-value" style="color:var(--text);">' + (station.cameras || '0') + '</div>') +
+            '</div>' +
             '<div class="info-item">' +
               '<div class="info-label">Mobility</div>' +
               '<div class="info-value ' + mobilityClass + '">' + station.mobility + '</div>' +
