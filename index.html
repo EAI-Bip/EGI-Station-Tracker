@@ -415,22 +415,28 @@
 
   .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
   }
   .info-item {
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(255,255,255,0.04);
     border-radius: 12px;
-    padding: 14px 16px;
+    padding: 16px 18px;
+    min-height: 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
+  .info-item.wide { grid-column: span 2; }
   .info-label {
     font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--text-dim); margin-bottom: 6px;
+    color: var(--text-dim); margin-bottom: 8px;
   }
   .info-value {
     font-size: 15px; font-weight: 600; color: var(--text);
     font-family: 'JetBrains Mono', monospace;
+    word-break: break-word;
   }
   .info-value.ip { color: var(--cyan); }
   .info-value.task-val { color: var(--purple); font-family: 'Inter', sans-serif; font-size: 14px; }
@@ -490,6 +496,53 @@
   .detail-notes-section { margin-top: 0; }
   .detail-notes-section .notes-list { margin-bottom: 10px; }
   .detail-notes-section .note-input { font-size: 13px; padding: 10px 14px; }
+
+  /* Edit mode */
+  .edit-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.03); color: var(--text-dim);
+    font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .edit-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); border-color: var(--accent); }
+  .edit-btn.active { background: rgba(59,130,246,0.1); color: var(--accent); border-color: rgba(59,130,246,0.3); }
+  .edit-btn svg { width: 14px; height: 14px; }
+
+  .save-all-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 24px; border-radius: 10px;
+    background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
+    color: var(--green);
+    border: 1px solid rgba(34,197,94,0.25);
+    font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .save-all-btn:hover { background: linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.1)); box-shadow: 0 0 20px var(--green-glow); }
+  .save-all-btn svg { width: 16px; height: 16px; }
+
+  .detail-top-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+    gap: 12px;
+  }
+
+  .edit-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 8px;
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 600;
+    padding: 8px 12px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  .edit-input:focus { border-color: var(--accent); box-shadow: 0 0 12px rgba(59,130,246,0.15); }
+  .edit-input.task-input { color: var(--purple); font-family: 'Inter', sans-serif; }
+  .edit-input::placeholder { color: #334155; }
 
   /* UR Arm IP Tooltip */
   .ur-model {
@@ -566,6 +619,7 @@
     .detail-body { padding: 20px; }
     .detail-footer { padding: 16px 20px; }
     .info-grid { grid-template-columns: 1fr 1fr; }
+    .info-item.wide { grid-column: span 2; }
   }
 </style>
 </head>
@@ -799,7 +853,7 @@ var stations = [
     id: 's2', name: 'Station 2', type: 'Single Arm Setup', subtitle: 'Old LeRobot', dual: false,
     state: 'OPERATIONAL',
     ip: '10.4.44.151',
-    host: 'datacollection4 (dc4)',
+    host: 'dc4',
     connection: 'Wired',
     mobility: 'Yes (Aloha)',
     task: 'PBS Bottle Task',
@@ -813,7 +867,7 @@ var stations = [
     id: 's3', name: 'Station 3', type: 'Single Arm Setup', subtitle: 'Denso', dual: false,
     state: 'NOT OPERATIONAL',
     ip: 'Offline, no IP',
-    host: 'dednso',
+    host: 'dc3',
     connection: 'Isolated',
     mobility: 'No',
     task: 'Currently not operational',
@@ -839,7 +893,7 @@ var stations = [
     defaultNotes: ['2 followers tested, both working']
   },
   {
-    id: 's5', name: 'Station 5', type: 'Dual Arm Setup', subtitle: 'v3 LeRobot', dual: true,
+    id: 's5', name: 'Station 5', type: 'Dual Arm Setup', subtitle: 'LeRobot v0.4.3', dual: true,
     state: 'NOT OPERATIONAL',
     ip: '10.4.45.82',
     host: 'dc2',
@@ -875,6 +929,7 @@ var stations = [
 var state = {};
 var currentView = 'grid'; // 'grid' or 'detail'
 var currentDetailId = null;
+var editMode = false;
 
 function getS(id) {
   if (!state[id]) {
@@ -922,6 +977,40 @@ function handleStationIpKey(e, id) {
     var input = document.getElementById('station-ip-input-' + id);
     if (input) saveStationIp(id, input.value);
   }
+}
+
+function toggleEditMode() {
+  editMode = !editMode;
+  if (currentDetailId) renderDetail(currentDetailId);
+}
+
+function saveAllEdits(id) {
+  var s = getS(id);
+  var station = stations.find(function(st) { return st.id === id; });
+
+  // Save station IP
+  var ipInput = document.getElementById('station-ip-input-' + id);
+  if (ipInput) { s.station_ip = ipInput.value.trim() || null; }
+
+  // Save task
+  var taskInput = document.getElementById('station-task-input-' + id);
+  if (taskInput) { station.task = taskInput.value.trim(); }
+
+  // Save UR arm IPs
+  if (station) {
+    station.robots.forEach(function(r) {
+      if (r.isUR && r.urKey) {
+        var urInput = document.getElementById('ip-input-' + r.urKey);
+        if (urInput) { s.robot_ips[r.urKey] = urInput.value.trim(); }
+      }
+    });
+  }
+
+  s.last_changed = Date.now();
+  state[id] = s;
+  saveStation(id);
+  editMode = false;
+  renderAll();
 }
 
 function getRobotIp(stationId, urKey) {
@@ -1176,6 +1265,7 @@ function renderDetail(id) {
   var label = st.online ? 'ONLINE' : 'OFFLINE';
   var btn = st.online ? 'Set Offline' : 'Set Online';
   var icon = station.dual ? dualArmSvgLarge(st.online) : robotSvgLarge(st.online);
+  var isEdit = editMode;
 
   var subtitleHtml = station.subtitle
     ? '<div class="detail-subtitle">' + station.subtitle + '</div>' : '';
@@ -1192,6 +1282,10 @@ function renderDetail(id) {
   var stateBorder = dpci.border;
   var currentIp = getStationIp(id);
 
+  // Pencil icon SVG
+  var pencilSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
+  var checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
   // Current robots table
   var currentRows = station.robots.map(function(r) {
     var payloadHtml = r.payload ? '<span class="payload-cell">' + r.payload + 'g</span>' : '<span style="color:#334155">-</span>';
@@ -1199,12 +1293,11 @@ function renderDetail(id) {
     var ipHtml = '';
     if (r.isUR && r.urKey) {
       var rip = getRobotIp(id, r.urKey);
-      ipHtml = '<td>' +
-        '<div class="ur-ip-edit-wrap">' +
-          '<input class="ur-ip-input" id="ip-input-' + r.urKey + '" type="text" value="' + (rip !== 'Not assigned' ? rip : '') + '" placeholder="Enter IP..." onkeydown="handleIpKey(event,\'' + id + '\',\'' + r.urKey + '\')">' +
-          '<button class="ur-ip-save-btn" onclick="var v=document.getElementById(\'ip-input-' + r.urKey + '\').value; saveRobotIp(\'' + id + '\',\'' + r.urKey + '\',v)">Save</button>' +
-        '</div>' +
-      '</td>';
+      if (isEdit) {
+        ipHtml = '<td><input class="edit-input" id="ip-input-' + r.urKey + '" type="text" value="' + (rip !== 'Not assigned' ? rip : '') + '" placeholder="Enter IP..." style="width:140px;"></td>';
+      } else {
+        ipHtml = '<td><span style="color:var(--cyan);font-family:JetBrains Mono,monospace;font-weight:600;">' + rip + '</span></td>';
+      }
     } else {
       ipHtml = '<td><span style="color:#334155">-</span></td>';
     }
@@ -1229,11 +1322,32 @@ function renderDetail(id) {
 
   var mobilityClass = station.mobility.toLowerCase().startsWith('yes') ? 'mobility-yes' : 'mobility-no';
 
+  // IP field: editable or read-only
+  var ipFieldHtml = isEdit
+    ? '<input class="edit-input" id="station-ip-input-' + id + '" type="text" value="' + (currentIp !== 'Not assigned' && currentIp !== 'Offline, no IP' ? currentIp : '') + '" placeholder="Enter IP...">'
+    : '<div class="info-value ip">' + currentIp + '</div>';
+
+  // Task field: editable or read-only
+  var taskFieldHtml = isEdit
+    ? '<input class="edit-input task-input" id="station-task-input-' + id + '" type="text" value="' + station.task + '" placeholder="Enter task...">'
+    : '<div class="info-value task-val">' + station.task + '</div>';
+
+  // State badge: always clickable
+  var stateBadgeHtml = '<span onclick="toggleStationState(\'' + id + '\')" style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;background:' + stateBg + ';color:' + stateColor + ';border:1px solid ' + stateBorder + ';cursor:pointer;transition:all 0.2s;" title="Click to toggle state">' + currentState + '</span>';
+
+  // Edit/Save button in top bar
+  var editBtnHtml = isEdit
+    ? '<button class="save-all-btn" onclick="saveAllEdits(\'' + id + '\')">' + checkSvg + 'Save Changes</button>'
+    : '<button class="edit-btn" onclick="toggleEditMode()">' + pencilSvg + 'Edit</button>';
+
   var html =
-    '<button class="back-btn" onclick="showGrid()">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>' +
-      'Back to Dashboard' +
-    '</button>' +
+    '<div class="detail-top-bar">' +
+      '<button class="back-btn" onclick="editMode=false; showGrid()" style="margin-bottom:0;">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>' +
+        'Back to Dashboard' +
+      '</button>' +
+      editBtnHtml +
+    '</div>' +
     '<div class="detail-card ' + cls + '">' +
       '<div class="detail-header">' +
         '<div class="detail-header-left">' +
@@ -1250,33 +1364,32 @@ function renderDetail(id) {
         '</div>' +
       '</div>' +
       '<div class="detail-body">' +
-        // Station info section
         '<div class="detail-section">' +
           '<div class="detail-section-title">Station Info</div>' +
           '<div class="info-grid">' +
+            // Row 1: IP, Hostname, State
             '<div class="info-item">' +
               '<div class="info-label">IP Address</div>' +
-              '<div class="ur-ip-edit-wrap" style="margin-top:0;">' +
-                '<input class="ur-ip-input" id="station-ip-input-' + id + '" type="text" value="' + (currentIp !== 'Not assigned' && currentIp !== 'Offline, no IP' ? currentIp : '') + '" placeholder="Enter IP..." onkeydown="handleStationIpKey(event,\'' + id + '\')" style="width:150px;">' +
-                '<button class="ur-ip-save-btn" onclick="var v=document.getElementById(\'station-ip-input-' + id + '\').value; saveStationIp(\'' + id + '\',v)">Save</button>' +
-              '</div>' +
+              ipFieldHtml +
             '</div>' +
             '<div class="info-item">' +
               '<div class="info-label">Hostname</div>' +
               '<div class="info-value" style="color:var(--purple);">' + (station.host || 'N/A') + '</div>' +
             '</div>' +
             '<div class="info-item">' +
-              '<div class="info-label">Connection</div>' +
-              '<div class="info-value" style="color:' + (station.connection === 'Wired' ? 'var(--green)' : 'var(--yellow)') + ';">' + (station.connection || 'N/A') + '</div>' +
-            '</div>' +
-            '<div class="info-item">' +
               '<div class="info-label">State</div>' +
-              '<div class="info-value"><span onclick="toggleStationState(\'' + id + '\')" style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;background:' + stateBg + ';color:' + stateColor + ';border:1px solid ' + stateBorder + ';cursor:pointer;transition:all 0.2s;" title="Click to toggle state">' + currentState + '</span></div>' +
+              '<div class="info-value">' + stateBadgeHtml + '</div>' +
+            '</div>' +
+            // Row 2: Task (wide), Status
+            '<div class="info-item wide">' +
+              '<div class="info-label">Current Task</div>' +
+              taskFieldHtml +
             '</div>' +
             '<div class="info-item">' +
-              '<div class="info-label">Current Task</div>' +
-              '<div class="info-value task-val">' + station.task + '</div>' +
+              '<div class="info-label">Status</div>' +
+              '<div class="info-value status-label" style="color:' + (st.online ? 'var(--green)' : 'var(--red)') + ';">' + label + '</div>' +
             '</div>' +
+            // Row 3: Mobility, Last Changed
             '<div class="info-item">' +
               '<div class="info-label">Mobility</div>' +
               '<div class="info-value ' + mobilityClass + '">' + station.mobility + '</div>' +
@@ -1285,13 +1398,8 @@ function renderDetail(id) {
               '<div class="info-label">Last Changed</div>' +
               '<div class="info-value" style="font-size:13px;">' + (st.last_changed ? fmtTime(st.last_changed) : 'Never') + '</div>' +
             '</div>' +
-            '<div class="info-item">' +
-              '<div class="info-label">Status</div>' +
-              '<div class="info-value status-label" style="color:' + (st.online ? 'var(--green)' : 'var(--red)') + ';">' + label + '</div>' +
-            '</div>' +
           '</div>' +
         '</div>' +
-        // Current robot config
         '<div class="detail-section">' +
           '<div class="detail-section-title">Current Robot Configuration</div>' +
           '<table class="detail-robot-table">' +
@@ -1299,7 +1407,6 @@ function renderDetail(id) {
             currentRows +
           '</table>' +
         '</div>' +
-        // Notes section
         '<div class="detail-section">' +
           '<div class="detail-section-title">Notes</div>' +
           '<div class="detail-notes-section">' +
@@ -1310,6 +1417,7 @@ function renderDetail(id) {
       '</div>' +
       '<div class="detail-footer">' +
         '<button class="detail-toggle-btn" onclick="toggleStation(\'' + id + '\')">' + btn + '</button>' +
+        (isEdit ? '<button class="save-all-btn" onclick="saveAllEdits(\'' + id + '\')">' + checkSvg + 'Save Changes</button>' : '') +
         '<div class="status-time">Last toggled: ' + (st.last_changed ? fmtTime(st.last_changed) : 'never') + '</div>' +
       '</div>' +
     '</div>';
