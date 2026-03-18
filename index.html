@@ -116,23 +116,62 @@
     background: var(--card-bg);
     border: 1px solid var(--card-border);
     border-radius: 16px;
-    overflow: hidden;
+    overflow: visible;
     transition: all 0.3s ease;
     position: relative;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
   }
   .card::before {
     content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--red), transparent);
-    transition: background 0.4s;
+    position: absolute; inset: -2px;
+    border-radius: 18px;
+    background: transparent;
+    z-index: -1;
+    transition: opacity 0.4s;
+    opacity: 0;
+  }
+  .card.online {
+    border-color: rgba(34,197,94,0.3);
+    box-shadow: 0 0 20px rgba(34,197,94,0.08);
   }
   .card.online::before {
-    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    opacity: 1;
+    background: conic-gradient(from var(--angle, 0deg), transparent 0%, #4ade80 10%, transparent 20%);
+    animation: rotate-border 8s linear infinite;
+  }
+  .card.offline {
+    border-color: rgba(239,68,68,0.3);
+    box-shadow: 0 0 15px rgba(239,68,68,0.1);
+  }
+  .card.offline::before {
+    opacity: 1;
+    background: rgba(239,68,68,0.15);
+  }
+  @keyframes rotate-border {
+    0% { --angle: 0deg; }
+    100% { --angle: 360deg; }
+  }
+  @property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  .card::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 16px;
+    background: var(--card-bg);
+    z-index: -1;
   }
   .card:hover {
     border-color: var(--card-hover);
     box-shadow: 0 8px 40px rgba(0,0,0,0.4);
     transform: translateY(-2px);
+  }
+  .card.online:hover {
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 30px rgba(34,197,94,0.15);
   }
 
   .card-header {
@@ -197,7 +236,7 @@
     50% { box-shadow: 0 0 20px rgba(34,197,94,0.5); }
   }
 
-  .card-body { padding: 0 24px 16px; }
+  .card-body { padding: 0 24px 16px; flex: 1; }
 
   .robot-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   .robot-table th {
@@ -276,11 +315,257 @@
     font-family: 'JetBrains Mono', monospace;
   }
 
+  .click-hint {
+    font-size: 10px; color: #334155; text-align: center; padding: 6px 0 2px;
+    letter-spacing: 0.5px;
+  }
+
+  /* === DETAIL VIEW === */
+  #detail-view {
+    display: none;
+    position: relative; z-index: 1;
+  }
+  #detail-view.active { display: block; }
+  #grid-view.hidden { display: none; }
+
+  .detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px;
+  }
+
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 12px;
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.03); color: var(--text-dim);
+    font-size: 13px; font-weight: 600; font-family: 'Inter', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+    margin-bottom: 24px;
+  }
+  .back-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); border-color: var(--accent); }
+  .back-btn svg { width: 16px; height: 16px; }
+
+  .detail-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+  .detail-card::before {
+    content: '';
+    position: absolute; inset: -2px;
+    border-radius: 22px;
+    z-index: -1;
+    transition: opacity 0.4s;
+    opacity: 0;
+  }
+  .detail-card.online { border-color: rgba(34,197,94,0.3); box-shadow: 0 0 30px rgba(34,197,94,0.08); }
+  .detail-card.online::before {
+    opacity: 1;
+    background: conic-gradient(from var(--angle, 0deg), transparent 0%, #4ade80 10%, transparent 20%);
+    animation: rotate-border 8s linear infinite;
+  }
+  .detail-card.offline { border-color: rgba(239,68,68,0.3); box-shadow: 0 0 20px rgba(239,68,68,0.1); }
+  .detail-card.offline::before { opacity: 1; background: rgba(239,68,68,0.15); }
+  .detail-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 20px;
+    background: var(--card-bg);
+    z-index: -1;
+  }
+
+  .detail-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .detail-header-left { display: flex; align-items: center; gap: 16px; }
+  .detail-icon {
+    width: 64px; height: 64px; flex-shrink: 0;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .detail-card.online .detail-icon { border-color: rgba(34,197,94,0.12); box-shadow: 0 0 20px rgba(34,197,94,0.08); }
+  .detail-name { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+  .detail-type { font-size: 13px; color: var(--text-dim); font-weight: 500; margin-top: 2px; }
+  .detail-subtitle { font-size: 12px; color: var(--cyan); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  .detail-body { padding: 24px 32px; }
+
+  .detail-section {
+    margin-bottom: 28px;
+  }
+  .detail-section:last-child { margin-bottom: 0; }
+  .detail-section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--accent); margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .detail-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--card-border), transparent);
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  .info-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .info-label {
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-dim); margin-bottom: 6px;
+  }
+  .info-value {
+    font-size: 15px; font-weight: 600; color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .info-value.ip { color: var(--cyan); }
+  .info-value.task-val { color: var(--purple); font-family: 'Inter', sans-serif; font-size: 14px; }
+  .info-value.mobility-yes { color: var(--green); }
+  .info-value.mobility-no { color: var(--text-dim); }
+  .info-value.status-label { font-size: 13px; font-weight: 700; letter-spacing: 0.5px; }
+
+  .detail-robot-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  .detail-robot-table th {
+    text-align: left; font-size: 10px; font-weight: 700;
+    color: var(--accent); text-transform: uppercase; letter-spacing: 1px;
+    padding: 10px 12px; border-bottom: 1px solid var(--card-border);
+    background: rgba(59,130,246,0.03);
+  }
+  .detail-robot-table td {
+    padding: 12px; color: var(--text-dim); border-bottom: 1px solid rgba(26,32,53,0.5);
+  }
+  .detail-robot-table td:first-child { color: var(--text); font-weight: 600; }
+  .detail-robot-table tr:last-child td { border-bottom: none; }
+  .detail-robot-table .payload-cell { color: var(--yellow); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .detail-robot-table .span-cell { color: var(--cyan); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+  .detail-footer {
+    padding: 20px 32px;
+    border-top: 1px solid var(--card-border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+
+  .detail-toggle-btn {
+    padding: 10px 28px; border-radius: 12px;
+    border: none;
+    font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif;
+    cursor: pointer; transition: all 0.25s;
+    letter-spacing: 0.3px;
+  }
+  .detail-card.offline .detail-toggle-btn {
+    background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
+    color: var(--green);
+    border: 1px solid rgba(34,197,94,0.25);
+  }
+  .detail-card.offline .detail-toggle-btn:hover {
+    background: linear-gradient(135deg, rgba(34,197,94,0.25), rgba(34,197,94,0.1));
+    box-shadow: 0 0 20px var(--green-glow);
+  }
+  .detail-card.online .detail-toggle-btn {
+    background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
+    color: var(--red);
+    border: 1px solid rgba(239,68,68,0.25);
+  }
+  .detail-card.online .detail-toggle-btn:hover {
+    background: linear-gradient(135deg, rgba(239,68,68,0.25), rgba(239,68,68,0.1));
+    box-shadow: 0 0 20px var(--red-glow);
+  }
+
+  .detail-notes-section { margin-top: 0; }
+  .detail-notes-section .notes-list { margin-bottom: 10px; }
+  .detail-notes-section .note-input { font-size: 13px; padding: 10px 14px; }
+
+  /* UR Arm IP Tooltip */
+  .ur-model {
+    position: relative;
+    cursor: pointer;
+    border-bottom: 1px dashed rgba(6,182,212,0.3);
+    display: inline-block;
+  }
+  .ur-model:hover { color: var(--cyan); }
+  .ur-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a2035;
+    border: 1px solid rgba(6,182,212,0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    white-space: nowrap;
+    z-index: 200;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    min-width: 160px;
+  }
+  .ur-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1a2035;
+  }
+  .ur-model:hover .ur-tooltip { display: block; }
+  .ur-tooltip-label {
+    font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-dim); margin-bottom: 4px;
+  }
+  .ur-tooltip-ip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 600; color: var(--cyan);
+  }
+  .ur-ip-edit-wrap {
+    display: flex; align-items: center; gap: 8px; margin-top: 6px;
+  }
+  .ur-ip-input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    color: var(--cyan);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 600;
+    padding: 8px 12px;
+    outline: none;
+    width: 180px;
+    transition: border-color 0.2s;
+  }
+  .ur-ip-input:focus { border-color: var(--cyan); box-shadow: 0 0 10px rgba(6,182,212,0.1); }
+  .ur-ip-save-btn {
+    padding: 6px 12px; border-radius: 8px;
+    background: rgba(6,182,212,0.1); color: var(--cyan);
+    border: 1px solid rgba(6,182,212,0.2);
+    font-size: 11px; font-weight: 700; font-family: 'Inter', sans-serif;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .ur-ip-save-btn:hover { background: rgba(6,182,212,0.2); }
 
   @media (max-width: 480px) {
     .grid { grid-template-columns: 1fr; }
     .header { padding: 16px; }
     .container { padding: 16px; }
+    .detail-container { padding: 16px; }
+    .detail-header { padding: 20px; flex-direction: column; gap: 12px; align-items: flex-start; }
+    .detail-body { padding: 20px; }
+    .detail-footer { padding: 16px 20px; }
+    .info-grid { grid-template-columns: 1fr 1fr; }
   }
 </style>
 </head>
@@ -288,13 +573,13 @@
 
 <div class="header">
   <div class="header-left">
-    <div class="logo-icon">
-      <svg width="38" height="38" viewBox="0 0 100 100" fill="none">
-        <circle cx="50" cy="50" r="46" stroke="white" stroke-width="4" fill="none"/>
-        <text x="50" y="58" text-anchor="middle" fill="white" font-family="'Courier New', monospace" font-weight="bold" font-size="30" letter-spacing="2">EGI</text>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <svg width="58" height="58" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="46" stroke="white" stroke-width="3.5" fill="none"/>
+        <text x="50" y="60" text-anchor="middle" fill="white" font-family="'Courier New', monospace" font-weight="bold" font-size="34" letter-spacing="3">EGI</text>
       </svg>
+      <div style="font-family:'Courier New',monospace; color:white; font-size:12px; font-weight:600; line-height:1.3; letter-spacing:1px;">Embodied<br>General<br>Intelligence</div>
     </div>
-    <div style="font-family:'Courier New',monospace; color:white; font-size:13px; font-weight:600; line-height:1.2; letter-spacing:1px;">Embodied<br>General<br>Intelligence</div>
     <div style="border-left: 1px solid rgba(255,255,255,0.15); padding-left: 20px; margin-left: 4px;">
       <h1>Robot Hardware Live Tracker</h1>
     </div>
@@ -316,8 +601,12 @@
   </div>
 </div>
 
-<div class="container">
+<div class="container" id="grid-view">
   <div class="grid" id="station-grid"></div>
+</div>
+
+<div id="detail-view">
+  <div class="detail-container" id="detail-content"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -330,40 +619,30 @@ var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 function robotSvg(online) {
   var g = online ? '#22c55e' : '#ef4444';
   return '<svg width="36" height="36" viewBox="0 0 80 90" fill="none">' +
-    // Shadow + base
     '<ellipse cx="28" cy="86" rx="20" ry="4" fill="' + g + '" opacity="0.1"/>' +
     '<ellipse cx="28" cy="84" rx="18" ry="5.5" fill="#222"/>' +
     '<ellipse cx="28" cy="82" rx="18" ry="5.5" fill="#333"/>' +
     '<ellipse cx="28" cy="81" rx="14" ry="4" fill="#3d3d3d"/>' +
-    // Base cylinder
     '<rect x="20" y="64" width="16" height="18" rx="5" fill="#d9d9d9"/>' +
     '<rect x="22" y="66" width="12" height="14" rx="4" fill="#eee"/>' +
-    // Shoulder joint
     '<circle cx="28" cy="62" r="8" fill="#3a3a3a"/>' +
     '<circle cx="28" cy="62" r="5.5" fill="#4d4d4d"/>' +
     '<circle cx="28" cy="62" r="3" fill="#333"/>' +
-    // Lower arm - curves slightly right
     '<path d="M28 54 Q30 38 36 28" stroke="#ddd" stroke-width="10" stroke-linecap="round" fill="none"/>' +
     '<path d="M28 54 Q30 38 36 28" stroke="#eee" stroke-width="6" stroke-linecap="round" fill="none"/>' +
-    // Elbow joint
     '<circle cx="36" cy="28" r="7" fill="#3a3a3a"/>' +
     '<circle cx="36" cy="28" r="5" fill="#4d4d4d"/>' +
     '<circle cx="36" cy="28" r="2.5" fill="#333"/>' +
-    // Upper arm - arches over to the right
     '<path d="M36 28 Q50 14 56 22" stroke="#ddd" stroke-width="9" stroke-linecap="round" fill="none"/>' +
     '<path d="M36 28 Q50 14 56 22" stroke="#eee" stroke-width="5" stroke-linecap="round" fill="none"/>' +
-    // Wrist joint
     '<circle cx="56" cy="22" r="5.5" fill="#3a3a3a"/>' +
     '<circle cx="56" cy="22" r="3.5" fill="#4d4d4d"/>' +
     '<circle cx="56" cy="22" r="2" fill="#333"/>' +
-    // Gripper mount
     '<rect x="52" y="26" width="8" height="5" rx="2" fill="#ccc"/>' +
-    // Gripper fingers - pointing down
     '<path d="M54 31 L52 40" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>' +
     '<path d="M58 31 L60 40" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>' +
     '<circle cx="52" cy="40" r="1.8" fill="#888"/>' +
     '<circle cx="60" cy="40" r="1.8" fill="#888"/>' +
-    // LED
     '<circle cx="28" cy="76" r="2" fill="' + g + '"/>' +
     (online ? '<circle cx="28" cy="76" r="2" fill="' + g + '" opacity="0.4"><animate attributeName="r" values="2;4;2" dur="2s" repeatCount="indefinite"/></circle>' : '') +
     '</svg>';
@@ -372,63 +651,127 @@ function robotSvg(online) {
 function dualArmSvg(online) {
   var g = online ? '#22c55e' : '#ef4444';
   return '<svg width="36" height="36" viewBox="0 0 120 90" fill="none">' +
-    // Shadow + shared base
     '<ellipse cx="60" cy="86" rx="34" ry="4" fill="' + g + '" opacity="0.1"/>' +
     '<ellipse cx="60" cy="84" rx="32" ry="5.5" fill="#222"/>' +
     '<ellipse cx="60" cy="82" rx="32" ry="5.5" fill="#333"/>' +
     '<ellipse cx="60" cy="81" rx="26" ry="4" fill="#3d3d3d"/>' +
-    // LED
     '<circle cx="60" cy="76" r="2" fill="' + g + '"/>' +
     (online ? '<circle cx="60" cy="76" r="2" fill="' + g + '" opacity="0.4"><animate attributeName="r" values="2;4;2" dur="2s" repeatCount="indefinite"/></circle>' : '') +
-    // === LEFT ARM ===
-    // Left base cylinder
     '<rect x="24" y="64" width="14" height="18" rx="5" fill="#d9d9d9"/>' +
     '<rect x="26" y="66" width="10" height="14" rx="4" fill="#eee"/>' +
-    // Left shoulder
     '<circle cx="31" cy="62" r="7" fill="#3a3a3a"/>' +
     '<circle cx="31" cy="62" r="5" fill="#4d4d4d"/>' +
     '<circle cx="31" cy="62" r="2.5" fill="#333"/>' +
-    // Left lower arm
     '<path d="M31 55 Q35 40 42 30" stroke="#ddd" stroke-width="8" stroke-linecap="round" fill="none"/>' +
     '<path d="M31 55 Q35 40 42 30" stroke="#eee" stroke-width="5" stroke-linecap="round" fill="none"/>' +
-    // Left elbow
     '<circle cx="42" cy="30" r="6" fill="#3a3a3a"/>' +
     '<circle cx="42" cy="30" r="4" fill="#4d4d4d"/>' +
     '<circle cx="42" cy="30" r="2" fill="#333"/>' +
-    // Left upper arm - arches inward
     '<path d="M42 30 Q52 14 56 24" stroke="#ddd" stroke-width="7" stroke-linecap="round" fill="none"/>' +
     '<path d="M42 30 Q52 14 56 24" stroke="#eee" stroke-width="4" stroke-linecap="round" fill="none"/>' +
-    // Left wrist
     '<circle cx="56" cy="24" r="4.5" fill="#3a3a3a"/>' +
     '<circle cx="56" cy="24" r="3" fill="#4d4d4d"/>' +
-    // Left gripper
     '<rect x="53" y="27" width="6" height="4" rx="1.5" fill="#ccc"/>' +
     '<path d="M54 31 L53 38" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>' +
     '<path d="M58 31 L59 38" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>' +
     '<circle cx="53" cy="38" r="1.4" fill="#888"/>' +
     '<circle cx="59" cy="38" r="1.4" fill="#888"/>' +
-    // === RIGHT ARM (mirrored) ===
-    // Right base cylinder
     '<rect x="82" y="64" width="14" height="18" rx="5" fill="#d9d9d9"/>' +
     '<rect x="84" y="66" width="10" height="14" rx="4" fill="#eee"/>' +
-    // Right shoulder
     '<circle cx="89" cy="62" r="7" fill="#3a3a3a"/>' +
     '<circle cx="89" cy="62" r="5" fill="#4d4d4d"/>' +
     '<circle cx="89" cy="62" r="2.5" fill="#333"/>' +
-    // Right lower arm
     '<path d="M89 55 Q85 40 78 30" stroke="#ddd" stroke-width="8" stroke-linecap="round" fill="none"/>' +
     '<path d="M89 55 Q85 40 78 30" stroke="#eee" stroke-width="5" stroke-linecap="round" fill="none"/>' +
-    // Right elbow
     '<circle cx="78" cy="30" r="6" fill="#3a3a3a"/>' +
     '<circle cx="78" cy="30" r="4" fill="#4d4d4d"/>' +
     '<circle cx="78" cy="30" r="2" fill="#333"/>' +
-    // Right upper arm - arches inward
     '<path d="M78 30 Q68 14 64 24" stroke="#ddd" stroke-width="7" stroke-linecap="round" fill="none"/>' +
     '<path d="M78 30 Q68 14 64 24" stroke="#eee" stroke-width="4" stroke-linecap="round" fill="none"/>' +
-    // Right wrist
     '<circle cx="64" cy="24" r="4.5" fill="#3a3a3a"/>' +
     '<circle cx="64" cy="24" r="3" fill="#4d4d4d"/>' +
-    // Right gripper
+    '<rect x="61" y="27" width="6" height="4" rx="1.5" fill="#ccc"/>' +
+    '<path d="M62 31 L61 38" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>' +
+    '<path d="M66 31 L67 38" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>' +
+    '<circle cx="61" cy="38" r="1.4" fill="#888"/>' +
+    '<circle cx="67" cy="38" r="1.4" fill="#888"/>' +
+    '</svg>';
+}
+
+function robotSvgLarge(online) {
+  var g = online ? '#22c55e' : '#ef4444';
+  return '<svg width="52" height="52" viewBox="0 0 80 90" fill="none">' +
+    '<ellipse cx="28" cy="86" rx="20" ry="4" fill="' + g + '" opacity="0.1"/>' +
+    '<ellipse cx="28" cy="84" rx="18" ry="5.5" fill="#222"/>' +
+    '<ellipse cx="28" cy="82" rx="18" ry="5.5" fill="#333"/>' +
+    '<ellipse cx="28" cy="81" rx="14" ry="4" fill="#3d3d3d"/>' +
+    '<rect x="20" y="64" width="16" height="18" rx="5" fill="#d9d9d9"/>' +
+    '<rect x="22" y="66" width="12" height="14" rx="4" fill="#eee"/>' +
+    '<circle cx="28" cy="62" r="8" fill="#3a3a3a"/>' +
+    '<circle cx="28" cy="62" r="5.5" fill="#4d4d4d"/>' +
+    '<circle cx="28" cy="62" r="3" fill="#333"/>' +
+    '<path d="M28 54 Q30 38 36 28" stroke="#ddd" stroke-width="10" stroke-linecap="round" fill="none"/>' +
+    '<path d="M28 54 Q30 38 36 28" stroke="#eee" stroke-width="6" stroke-linecap="round" fill="none"/>' +
+    '<circle cx="36" cy="28" r="7" fill="#3a3a3a"/>' +
+    '<circle cx="36" cy="28" r="5" fill="#4d4d4d"/>' +
+    '<circle cx="36" cy="28" r="2.5" fill="#333"/>' +
+    '<path d="M36 28 Q50 14 56 22" stroke="#ddd" stroke-width="9" stroke-linecap="round" fill="none"/>' +
+    '<path d="M36 28 Q50 14 56 22" stroke="#eee" stroke-width="5" stroke-linecap="round" fill="none"/>' +
+    '<circle cx="56" cy="22" r="5.5" fill="#3a3a3a"/>' +
+    '<circle cx="56" cy="22" r="3.5" fill="#4d4d4d"/>' +
+    '<circle cx="56" cy="22" r="2" fill="#333"/>' +
+    '<rect x="52" y="26" width="8" height="5" rx="2" fill="#ccc"/>' +
+    '<path d="M54 31 L52 40" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>' +
+    '<path d="M58 31 L60 40" stroke="#aaa" stroke-width="2.5" stroke-linecap="round"/>' +
+    '<circle cx="52" cy="40" r="1.8" fill="#888"/>' +
+    '<circle cx="60" cy="40" r="1.8" fill="#888"/>' +
+    '<circle cx="28" cy="76" r="2" fill="' + g + '"/>' +
+    (online ? '<circle cx="28" cy="76" r="2" fill="' + g + '" opacity="0.4"><animate attributeName="r" values="2;4;2" dur="2s" repeatCount="indefinite"/></circle>' : '') +
+    '</svg>';
+}
+
+function dualArmSvgLarge(online) {
+  var g = online ? '#22c55e' : '#ef4444';
+  return '<svg width="52" height="52" viewBox="0 0 120 90" fill="none">' +
+    '<ellipse cx="60" cy="86" rx="34" ry="4" fill="' + g + '" opacity="0.1"/>' +
+    '<ellipse cx="60" cy="84" rx="32" ry="5.5" fill="#222"/>' +
+    '<ellipse cx="60" cy="82" rx="32" ry="5.5" fill="#333"/>' +
+    '<ellipse cx="60" cy="81" rx="26" ry="4" fill="#3d3d3d"/>' +
+    '<circle cx="60" cy="76" r="2" fill="' + g + '"/>' +
+    (online ? '<circle cx="60" cy="76" r="2" fill="' + g + '" opacity="0.4"><animate attributeName="r" values="2;4;2" dur="2s" repeatCount="indefinite"/></circle>' : '') +
+    '<rect x="24" y="64" width="14" height="18" rx="5" fill="#d9d9d9"/>' +
+    '<rect x="26" y="66" width="10" height="14" rx="4" fill="#eee"/>' +
+    '<circle cx="31" cy="62" r="7" fill="#3a3a3a"/>' +
+    '<circle cx="31" cy="62" r="5" fill="#4d4d4d"/>' +
+    '<circle cx="31" cy="62" r="2.5" fill="#333"/>' +
+    '<path d="M31 55 Q35 40 42 30" stroke="#ddd" stroke-width="8" stroke-linecap="round" fill="none"/>' +
+    '<path d="M31 55 Q35 40 42 30" stroke="#eee" stroke-width="5" stroke-linecap="round" fill="none"/>' +
+    '<circle cx="42" cy="30" r="6" fill="#3a3a3a"/>' +
+    '<circle cx="42" cy="30" r="4" fill="#4d4d4d"/>' +
+    '<circle cx="42" cy="30" r="2" fill="#333"/>' +
+    '<path d="M42 30 Q52 14 56 24" stroke="#ddd" stroke-width="7" stroke-linecap="round" fill="none"/>' +
+    '<path d="M42 30 Q52 14 56 24" stroke="#eee" stroke-width="4" stroke-linecap="round" fill="none"/>' +
+    '<circle cx="56" cy="24" r="4.5" fill="#3a3a3a"/>' +
+    '<circle cx="56" cy="24" r="3" fill="#4d4d4d"/>' +
+    '<rect x="53" y="27" width="6" height="4" rx="1.5" fill="#ccc"/>' +
+    '<path d="M54 31 L53 38" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>' +
+    '<path d="M58 31 L59 38" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>' +
+    '<circle cx="53" cy="38" r="1.4" fill="#888"/>' +
+    '<circle cx="59" cy="38" r="1.4" fill="#888"/>' +
+    '<rect x="82" y="64" width="14" height="18" rx="5" fill="#d9d9d9"/>' +
+    '<rect x="84" y="66" width="10" height="14" rx="4" fill="#eee"/>' +
+    '<circle cx="89" cy="62" r="7" fill="#3a3a3a"/>' +
+    '<circle cx="89" cy="62" r="5" fill="#4d4d4d"/>' +
+    '<circle cx="89" cy="62" r="2.5" fill="#333"/>' +
+    '<path d="M89 55 Q85 40 78 30" stroke="#ddd" stroke-width="8" stroke-linecap="round" fill="none"/>' +
+    '<path d="M89 55 Q85 40 78 30" stroke="#eee" stroke-width="5" stroke-linecap="round" fill="none"/>' +
+    '<circle cx="78" cy="30" r="6" fill="#3a3a3a"/>' +
+    '<circle cx="78" cy="30" r="4" fill="#4d4d4d"/>' +
+    '<circle cx="78" cy="30" r="2" fill="#333"/>' +
+    '<path d="M78 30 Q68 14 64 24" stroke="#ddd" stroke-width="7" stroke-linecap="round" fill="none"/>' +
+    '<path d="M78 30 Q68 14 64 24" stroke="#eee" stroke-width="4" stroke-linecap="round" fill="none"/>' +
+    '<circle cx="64" cy="24" r="4.5" fill="#3a3a3a"/>' +
+    '<circle cx="64" cy="24" r="3" fill="#4d4d4d"/>' +
     '<rect x="61" y="27" width="6" height="4" rx="1.5" fill="#ccc"/>' +
     '<path d="M62 31 L61 38" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>' +
     '<path d="M66 31 L67 38" stroke="#aaa" stroke-width="2" stroke-linecap="round"/>' +
@@ -439,54 +782,126 @@ function dualArmSvg(online) {
 
 var stations = [
   {
-    id: 's1', name: 'Station 1', type: 'Single Arm Setup', subtitle: '', dual: false,
+    id: 's1', name: 'Station 1', type: 'Single Arm Setup', subtitle: 'Old & New v3 LeRobot', dual: false,
+    phase: 'OPERATIONAL',
+    ip: '10.4.106.133',
+    host: 'datacollection1',
+    connection: 'Wired',
+    mobility: 'No',
+    task: 'No task currently',
     robots: [
-      { role: 'Leader', model: 'Used for 2m table' },
-      { role: 'Follower', model: 'ViperX' }
+      { role: 'Leader', model: 'Used for 2m table', payload: '250', span: '1300', isUR: false },
+      { role: 'Follower', model: 'ViperX', payload: '750', span: '1500', isUR: false }
     ],
-    defaultNotes: []
+    specsRobots: [
+      { position: 'Leader 1', model: 'Widow X', payload: '250', span: '1300' },
+      { position: 'Follower 1', model: 'Widow X', payload: '250', span: '1300' },
+      { position: 'Leader 2', model: 'n/a', payload: '', span: '' },
+      { position: 'Follower 2', model: 'n/a', payload: '', span: '' }
+    ],
+    defaultNotes: ['Need to check if the ROS topics are being recorded']
   },
   {
-    id: 's2', name: 'Station 2', type: 'Single Arm Setup', subtitle: '', dual: false,
+    id: 's2', name: 'Station 2', type: 'Single Arm Setup', subtitle: 'Old LeRobot', dual: false,
+    phase: 'OPERATIONAL',
+    ip: '10.4.44.151',
+    host: 'datacollection4 (dc4)',
+    connection: 'Wired',
+    mobility: 'No',
+    task: 'PBS Bottle Task',
     robots: [
-      { role: 'Leader', model: 'WidowX' },
-      { role: 'Follower', model: 'ViperX' }
+      { role: 'Leader', model: 'WidowX', payload: '250', span: '1300', isUR: false },
+      { role: 'Follower', model: 'ViperX', payload: '750', span: '1500', isUR: false }
+    ],
+    specsRobots: [
+      { position: 'Leader 1', model: 'Widow X', payload: '250', span: '1300' },
+      { position: 'Follower 1', model: 'Viper X', payload: '750', span: '1500' },
+      { position: 'Leader 2', model: 'n/a', payload: '250', span: '1300' },
+      { position: 'Follower 2', model: 'n/a', payload: '750', span: '1500' }
     ],
     defaultNotes: ['Motors stiff / new motors ordered', 'Conveyor Belt']
   },
   {
-    id: 's3', name: 'Station 3', type: 'Single Arm Setup', subtitle: '', dual: false,
+    id: 's3', name: 'Station 3', type: 'Single Arm Setup', subtitle: 'Denso', dual: false,
+    phase: 'NOT OPERATIONAL',
+    ip: 'Offline, no IP',
+    host: 'dednso',
+    connection: 'Isolated',
+    mobility: 'Yes (Aloha)',
+    task: 'Currently not operational',
     robots: [
-      { role: 'Leader', model: 'Denso' },
-      { role: 'Follower', model: 'Denso' }
+      { role: 'Leader', model: 'Denso', payload: '500', span: '685', isUR: false },
+      { role: 'Follower', model: 'Denso', payload: '500', span: '685', isUR: false }
+    ],
+    specsRobots: [
+      { position: 'Leader 1', model: 'Widow X', payload: '250', span: '1300' },
+      { position: 'Follower 1', model: 'Viper X', payload: '750', span: '1500' },
+      { position: 'Leader 2', model: 'n/a', payload: '250', span: '1300' },
+      { position: 'Follower 2', model: 'n/a', payload: '750', span: '1500' }
     ],
     defaultNotes: []
   },
   {
     id: 's4', name: 'Station 4', type: 'Single Arm Setup', subtitle: 'Dev Workstation', dual: false,
+    phase: 'INTEGRATING',
+    ip: '10.4.47.202',
+    host: 'dc6',
+    connection: 'Isolated',
+    mobility: 'No',
+    task: 'Testing (New v3 LeRobot)',
     robots: [
-      { role: 'Leader 1', model: 'Piper' },
-      { role: 'Leader 2', model: 'Gello' },
-      { role: 'Follower', model: 'UR 7e' }
+      { role: 'Leader 1', model: 'Piper', payload: '3000', span: '1000', isUR: false },
+      { role: 'Leader 2', model: 'Gello', payload: '', span: '', isUR: false },
+      { role: 'Follower', model: 'UR 7e', payload: '7500', span: '1700', isUR: true, urKey: 's4-follower' }
+    ],
+    specsRobots: [
+      { position: 'Leader 1', model: 'Piper', payload: '3000', span: '1000' },
+      { position: 'Follower 1', model: 'UR7', payload: '7500', span: '1700' },
+      { position: 'Leader 2', model: 'n/a', payload: '', span: '' },
+      { position: 'Follower 2', model: 'n/a', payload: '', span: '' }
     ],
     defaultNotes: ['2 followers tested, both working']
   },
   {
-    id: 's5', name: 'Station 5', type: 'Dual Arm Setup', subtitle: '', dual: true,
+    id: 's5', name: 'Station 5', type: 'Dual Arm Setup', subtitle: 'v3 LeRobot', dual: true,
+    phase: 'NOT OPERATIONAL',
+    ip: '10.4.45.82',
+    host: 'dc2',
+    connection: 'Isolated',
+    mobility: 'No',
+    task: 'Currently not operational, integrating',
     robots: [
-      { role: 'Leader', model: 'None currently (Gello or Piper possible)' },
-      { role: 'Follower 1', model: 'UR 3e' },
-      { role: 'Follower 2', model: 'UR 3e' }
+      { role: 'Leader', model: 'None currently (Gello or Piper possible)', payload: '', span: '', isUR: false },
+      { role: 'Follower 1', model: 'UR 3e', payload: '7500', span: '1700', isUR: true, urKey: 's5-follower1' },
+      { role: 'Follower 2', model: 'UR 3e', payload: '7500', span: '1700', isUR: true, urKey: 's5-follower2' }
+    ],
+    specsRobots: [
+      { position: 'Leader 1', model: 'Piper', payload: '3000', span: '1000' },
+      { position: 'Follower 1', model: 'UR3', payload: '7500', span: '1700' },
+      { position: 'Leader 2', model: 'n/a', payload: '', span: '' },
+      { position: 'Follower 2', model: 'n/a', payload: '', span: '' }
     ],
     defaultNotes: ['No current leaders assigned']
   },
   {
     id: 's6', name: 'Station 6', type: 'Dual Arm Setup', subtitle: '', dual: true,
+    phase: 'INTEGRATING',
+    ip: '10.4.44.47',
+    host: 'dc8',
+    connection: 'Isolated',
+    mobility: 'No',
+    task: 'Integrating',
     robots: [
-      { role: 'Leader 1', model: 'WidowX (current)' },
-      { role: 'Leader 2', model: 'WidowX (current)' },
-      { role: 'Follower 1', model: 'UR 7e' },
-      { role: 'Follower 2', model: 'UR 7e' }
+      { role: 'Leader 1', model: 'WidowX (current)', payload: '250', span: '1300', isUR: false },
+      { role: 'Leader 2', model: 'WidowX (current)', payload: '250', span: '1300', isUR: false },
+      { role: 'Follower 1', model: 'UR 7e', payload: '7500', span: '1700', isUR: true, urKey: 's6-follower1' },
+      { role: 'Follower 2', model: 'UR 7e', payload: '7500', span: '1700', isUR: true, urKey: 's6-follower2' }
+    ],
+    specsRobots: [
+      { position: 'Leader 1', model: 'Piper', payload: '3000', span: '1000' },
+      { position: 'Follower 1', model: 'UR3', payload: '7500', span: '1700' },
+      { position: 'Leader 2', model: 'n/a', payload: '', span: '' },
+      { position: 'Follower 2', model: 'n/a', payload: '', span: '' }
     ],
     defaultNotes: ['Alt: Piper (cartesian ctrl)', 'Alt: UR 3e (joint ctrl)', 'Alt: Gello (joint ctrl) planned']
   }
@@ -494,13 +909,38 @@ var stations = [
 
 // --- State management via Supabase ---
 var state = {};
+var currentView = 'grid'; // 'grid' or 'detail'
+var currentDetailId = null;
 
 function getS(id) {
   if (!state[id]) {
     var station = stations.find(function(s) { return s.id === id; });
-    state[id] = { online: false, notes: station ? station.defaultNotes.slice() : [], last_changed: 0 };
+    state[id] = { online: false, notes: station ? station.defaultNotes.slice() : [], last_changed: 0, robot_ips: {} };
   }
+  if (!state[id].robot_ips) state[id].robot_ips = {};
   return state[id];
+}
+
+function getRobotIp(stationId, urKey) {
+  var s = getS(stationId);
+  return s.robot_ips[urKey] || 'Not assigned';
+}
+
+function saveRobotIp(stationId, urKey, ip) {
+  var s = getS(stationId);
+  s.robot_ips[urKey] = ip.trim();
+  s.last_changed = Date.now();
+  state[stationId] = s;
+  saveStation(stationId);
+  renderAll();
+}
+
+function handleIpKey(e, stationId, urKey) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    var input = document.getElementById('ip-input-' + urKey);
+    if (input) saveRobotIp(stationId, urKey, input.value);
+  }
 }
 
 function updateCounts() {
@@ -517,14 +957,14 @@ function fmtTime(ts) {
          d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Write a single station to Supabase
 function saveStation(id) {
   var s = getS(id);
   sb.from('stations').upsert({
     id: id,
     online: s.online,
     notes: s.notes,
-    last_changed: s.last_changed
+    last_changed: s.last_changed,
+    robot_ips: s.robot_ips || {}
   }).then(function(res) {
     if (res.error) console.error('Save error:', res.error);
   });
@@ -578,7 +1018,33 @@ function handleNoteKey(e, id) {
   }
 }
 
-// Load initial state from Supabase
+// --- Navigation ---
+function showDetail(id) {
+  currentView = 'detail';
+  currentDetailId = id;
+  document.getElementById('grid-view').classList.add('hidden');
+  document.getElementById('detail-view').classList.add('active');
+  renderDetail(id);
+  window.scrollTo(0, 0);
+}
+
+function showGrid() {
+  currentView = 'grid';
+  currentDetailId = null;
+  document.getElementById('grid-view').classList.remove('hidden');
+  document.getElementById('detail-view').classList.remove('active');
+}
+
+function handleCardClick(e, id) {
+  // Don't navigate if clicking on buttons, inputs, or remove-note spans
+  var tag = e.target.tagName.toLowerCase();
+  if (tag === 'button' || tag === 'input' || e.target.classList.contains('remove-note')) return;
+  // Also check parent for note tags
+  if (e.target.closest('.toggle-btn') || e.target.closest('.note-input') || e.target.closest('.remove-note')) return;
+  showDetail(id);
+}
+
+// --- Load from Supabase ---
 async function loadFromSupabase() {
   var res = await sb.from('stations').select('*');
   if (res.error) {
@@ -590,14 +1056,15 @@ async function loadFromSupabase() {
       state[row.id] = {
         online: row.online,
         notes: row.notes || [],
-        last_changed: row.last_changed || 0
+        last_changed: row.last_changed || 0,
+        robot_ips: row.robot_ips || {}
       };
     });
   }
   renderAll();
 }
 
-// Realtime subscription - sync across browsers
+// Realtime subscription
 sb.channel('stations-changes')
   .on('postgres_changes', { event: '*', schema: 'public', table: 'stations' }, function(payload) {
     var row = payload.new;
@@ -605,22 +1072,34 @@ sb.channel('stations-changes')
       state[row.id] = {
         online: row.online,
         notes: row.notes || [],
-        last_changed: row.last_changed || 0
+        last_changed: row.last_changed || 0,
+        robot_ips: row.robot_ips || {}
       };
       renderAll();
     }
   })
   .subscribe();
 
+// --- Render Grid Card ---
 function renderCard(station) {
   var st = getS(station.id);
   var cls = st.online ? 'online' : 'offline';
-  var label = st.online ? 'LIVE' : 'OFFLINE';
+  var label = st.online ? 'ONLINE' : 'OFFLINE';
   var btn = st.online ? 'Set Offline' : 'Set Online';
   var icon = station.dual ? dualArmSvg(st.online) : robotSvg(st.online);
 
   var rows = station.robots.map(function(r) {
-    return '<tr><td>' + r.role + '</td><td>' + r.model + '</td></tr>';
+    var modelHtml = r.model;
+    if (r.isUR && r.urKey) {
+      var rip = getRobotIp(station.id, r.urKey);
+      modelHtml = '<span class="ur-model" onclick="event.stopPropagation()">' + r.model +
+        '<div class="ur-tooltip">' +
+          '<div class="ur-tooltip-label">IP Address</div>' +
+          '<div class="ur-tooltip-ip">' + rip + '</div>' +
+        '</div>' +
+      '</span>';
+    }
+    return '<tr><td>' + r.role + '</td><td>' + modelHtml + '</td></tr>';
   }).join('');
 
   var subtitleHtml = station.subtitle
@@ -632,20 +1111,28 @@ function renderCard(station) {
   if (notes.length) {
     noteTagsHtml = '<div class="notes-list">' + notes.map(function(n, i) {
       return '<span class="note-tag"><span class="note-dot"></span>' + n +
-        '<span class="remove-note" onclick="removeNote(\'' + station.id + '\',' + i + ')" title="Remove">&times;</span></span>';
+        '<span class="remove-note" onclick="event.stopPropagation(); removeNote(\'' + station.id + '\',' + i + ')" title="Remove">&times;</span></span>';
     }).join('') + '</div>';
   }
   notesHtml = '<div class="notes-section">' +
     noteTagsHtml +
-    '<input class="note-input" id="note-input-' + station.id + '" type="text" placeholder="Add a note and press Enter..." onkeydown="handleNoteKey(event,\'' + station.id + '\')">' +
+    '<input class="note-input" id="note-input-' + station.id + '" type="text" placeholder="Add a note and press Enter..." onkeydown="handleNoteKey(event,\'' + station.id + '\')" onclick="event.stopPropagation()">' +
     '</div>';
 
-  return '<div class="card ' + cls + '">' +
+  var phaseColors = {
+    'OPERATIONAL': { bg: 'rgba(34,197,94,0.1)', color: '#22c55e', border: 'rgba(34,197,94,0.15)' },
+    'INTEGRATING': { bg: 'rgba(234,179,8,0.1)', color: '#eab308', border: 'rgba(234,179,8,0.15)' },
+    'NOT OPERATIONAL': { bg: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'rgba(239,68,68,0.15)' }
+  };
+  var pc = phaseColors[station.phase] || phaseColors['INTEGRATING'];
+  var phaseTag = '<span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:' + pc.bg + ';color:' + pc.color + ';border:1px solid ' + pc.border + ';letter-spacing:0.5px;margin-left:8px;">' + station.phase + '</span>';
+
+  return '<div class="card ' + cls + '" onclick="handleCardClick(event,\'' + station.id + '\')">' +
     '<div class="card-header">' +
       '<div class="card-title-area">' +
         '<div class="robot-icon">' + icon + '</div>' +
         '<div>' +
-          '<div class="card-title">' + station.name + '</div>' +
+          '<div class="card-title">' + station.name + phaseTag + '</div>' +
           subtitleHtml +
           '<div class="card-type">' + station.type + '</div>' +
         '</div>' +
@@ -663,19 +1150,198 @@ function renderCard(station) {
       notesHtml +
     '</div>' +
     '<div class="card-footer">' +
-      '<button class="toggle-btn" onclick="toggleStation(\'' + station.id + '\')">' + btn + '</button>' +
+      '<button class="toggle-btn" onclick="event.stopPropagation(); toggleStation(\'' + station.id + '\')">' + btn + '</button>' +
       '<div class="status-time">' + (st.last_changed ? fmtTime(st.last_changed) : 'never toggled') + '</div>' +
     '</div>' +
+    '<div class="click-hint">Click to view details</div>' +
   '</div>';
 }
 
+// --- Render Detail View ---
+function renderDetail(id) {
+  var station = stations.find(function(s) { return s.id === id; });
+  if (!station) return;
+  var st = getS(id);
+  var cls = st.online ? 'online' : 'offline';
+  var label = st.online ? 'ONLINE' : 'OFFLINE';
+  var btn = st.online ? 'Set Offline' : 'Set Online';
+  var icon = station.dual ? dualArmSvgLarge(st.online) : robotSvgLarge(st.online);
+
+  var subtitleHtml = station.subtitle
+    ? '<div class="detail-subtitle">' + station.subtitle + '</div>' : '';
+
+  var dpc = {
+    'OPERATIONAL': { color: '#22c55e', bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.2)' },
+    'INTEGRATING': { color: '#eab308', bg: 'rgba(234,179,8,0.1)', border: 'rgba(234,179,8,0.2)' },
+    'NOT OPERATIONAL': { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.2)' }
+  };
+  var dpci = dpc[station.phase] || dpc['INTEGRATING'];
+  var phaseColor = dpci.color;
+  var phaseBg = dpci.bg;
+  var phaseBorder = dpci.border;
+
+  // Specs table rows
+  var specsRows = station.specsRobots.map(function(r) {
+    var payloadHtml = r.payload ? '<span class="payload-cell">' + r.payload + 'g</span>' : '<span style="color:#334155">-</span>';
+    var spanHtml = r.span ? '<span class="span-cell">' + r.span + 'mm</span>' : '<span style="color:#334155">-</span>';
+    return '<tr>' +
+      '<td>' + r.position + '</td>' +
+      '<td>' + r.model + '</td>' +
+      '<td>' + payloadHtml + '</td>' +
+      '<td>' + spanHtml + '</td>' +
+    '</tr>';
+  }).join('');
+
+  // Current robots table
+  var currentRows = station.robots.map(function(r) {
+    var payloadHtml = r.payload ? '<span class="payload-cell">' + r.payload + 'g</span>' : '<span style="color:#334155">-</span>';
+    var spanHtml = r.span ? '<span class="span-cell">' + r.span + 'mm</span>' : '<span style="color:#334155">-</span>';
+    var ipHtml = '';
+    if (r.isUR && r.urKey) {
+      var rip = getRobotIp(id, r.urKey);
+      ipHtml = '<td>' +
+        '<div class="ur-ip-edit-wrap">' +
+          '<input class="ur-ip-input" id="ip-input-' + r.urKey + '" type="text" value="' + (rip !== 'Not assigned' ? rip : '') + '" placeholder="Enter IP..." onkeydown="handleIpKey(event,\'' + id + '\',\'' + r.urKey + '\')">' +
+          '<button class="ur-ip-save-btn" onclick="var v=document.getElementById(\'ip-input-' + r.urKey + '\').value; saveRobotIp(\'' + id + '\',\'' + r.urKey + '\',v)">Save</button>' +
+        '</div>' +
+      '</td>';
+    } else {
+      ipHtml = '<td><span style="color:#334155">-</span></td>';
+    }
+    return '<tr>' +
+      '<td>' + r.role + '</td>' +
+      '<td>' + r.model + '</td>' +
+      '<td>' + payloadHtml + '</td>' +
+      '<td>' + spanHtml + '</td>' +
+      ipHtml +
+    '</tr>';
+  }).join('');
+
+  // Notes
+  var notes = st.notes || [];
+  var noteTagsHtml = '';
+  if (notes.length) {
+    noteTagsHtml = '<div class="notes-list">' + notes.map(function(n, i) {
+      return '<span class="note-tag"><span class="note-dot"></span>' + n +
+        '<span class="remove-note" onclick="removeNote(\'' + id + '\',' + i + ')" title="Remove">&times;</span></span>';
+    }).join('') + '</div>';
+  }
+
+  var mobilityClass = station.mobility.toLowerCase().startsWith('yes') ? 'mobility-yes' : 'mobility-no';
+
+  var html =
+    '<button class="back-btn" onclick="showGrid()">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>' +
+      'Back to Dashboard' +
+    '</button>' +
+    '<div class="detail-card ' + cls + '">' +
+      '<div class="detail-header">' +
+        '<div class="detail-header-left">' +
+          '<div class="detail-icon">' + icon + '</div>' +
+          '<div>' +
+            '<div class="detail-name">' + station.name + '</div>' +
+            subtitleHtml +
+            '<div class="detail-type">' + station.type + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="status-pill ' + cls + '" style="font-size:14px; padding:8px 18px;">' +
+          '<div class="status-dot ' + cls + '"></div>' +
+          label +
+        '</div>' +
+      '</div>' +
+      '<div class="detail-body">' +
+        // Station info section
+        '<div class="detail-section">' +
+          '<div class="detail-section-title">Station Info</div>' +
+          '<div class="info-grid">' +
+            '<div class="info-item">' +
+              '<div class="info-label">IP Address</div>' +
+              '<div class="info-value ip">' + station.ip + '</div>' +
+            '</div>' +
+            '<div class="info-item">' +
+              '<div class="info-label">Hostname</div>' +
+              '<div class="info-value" style="color:var(--purple);">' + (station.host || 'N/A') + '</div>' +
+            '</div>' +
+            '<div class="info-item">' +
+              '<div class="info-label">Connection</div>' +
+              '<div class="info-value" style="color:' + (station.connection === 'Wired' ? 'var(--green)' : 'var(--yellow)') + ';">' + (station.connection || 'N/A') + '</div>' +
+            '</div>' +
+            '<div class="info-item">' +
+              '<div class="info-label">Phase</div>' +
+              '<div class="info-value"><span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;background:' + phaseBg + ';color:' + phaseColor + ';border:1px solid ' + phaseBorder + ';">' + station.phase + '</span></div>' +
+            '</div>' +
+            '<div class="info-item">' +
+              '<div class="info-label">Current Task</div>' +
+              '<div class="info-value task-val">' + station.task + '</div>' +
+            '</div>' +
+            '<div class="info-item">' +
+              '<div class="info-label">Mobility</div>' +
+              '<div class="info-value ' + mobilityClass + '">' + station.mobility + '</div>' +
+            '</div>' +
+            '<div class="info-item">' +
+              '<div class="info-label">Last Changed</div>' +
+              '<div class="info-value" style="font-size:13px;">' + (st.last_changed ? fmtTime(st.last_changed) : 'Never') + '</div>' +
+            '</div>' +
+            '<div class="info-item">' +
+              '<div class="info-label">Status</div>' +
+              '<div class="info-value status-label" style="color:' + (st.online ? 'var(--green)' : 'var(--red)') + ';">' + label + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        // Current robot config
+        '<div class="detail-section">' +
+          '<div class="detail-section-title">Current Robot Configuration</div>' +
+          '<table class="detail-robot-table">' +
+            '<tr><th>Role</th><th>Model</th><th>Payload</th><th>Span</th><th>IP Address</th></tr>' +
+            currentRows +
+          '</table>' +
+        '</div>' +
+        // Reference specs from sheet
+        '<div class="detail-section">' +
+          '<div class="detail-section-title">Reference Specs (Sep 2024)</div>' +
+          '<table class="detail-robot-table">' +
+            '<tr><th>Position</th><th>Model</th><th>Payload</th><th>Span</th></tr>' +
+            specsRows +
+          '</table>' +
+        '</div>' +
+        // Notes section
+        '<div class="detail-section">' +
+          '<div class="detail-section-title">Notes</div>' +
+          '<div class="detail-notes-section">' +
+            noteTagsHtml +
+            '<input class="note-input" id="note-input-' + id + '" type="text" placeholder="Add a note and press Enter..." onkeydown="handleNoteKey(event,\'' + id + '\')">' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="detail-footer">' +
+        '<button class="detail-toggle-btn" onclick="toggleStation(\'' + id + '\')">' + btn + '</button>' +
+        '<div class="status-time">Last toggled: ' + (st.last_changed ? fmtTime(st.last_changed) : 'never') + '</div>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('detail-content').innerHTML = html;
+}
+
+// --- Render All ---
 function renderAll() {
   document.getElementById('station-grid').innerHTML = stations.map(renderCard).join('');
   updateCounts();
   document.getElementById('last-updated').textContent = fmtTime(Date.now());
+
+  // If detail view is open, re-render it too
+  if (currentView === 'detail' && currentDetailId) {
+    renderDetail(currentDetailId);
+  }
 }
 
-// Initial load from Supabase
+// Handle back button in browser
+window.addEventListener('popstate', function() {
+  if (currentView === 'detail') {
+    showGrid();
+  }
+});
+
+// Initial load
 loadFromSupabase();
 </script>
 </body>
