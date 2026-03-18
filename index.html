@@ -782,89 +782,65 @@ function dualArmSvgLarge(online) {
 
 var stations = [
   {
-    id: 's1', name: 'Station 1', type: 'Single Arm Setup', subtitle: 'Old & New v3 LeRobot', dual: false,
-    phase: 'OPERATIONAL',
+    id: 's1', name: 'Station 1', type: 'Single Arm Setup', subtitle: 'Old & LeRobot v0.4.3', dual: false,
+    state: 'NOT OPERATIONAL',
     ip: '10.4.106.133',
     host: 'datacollection1',
     connection: 'Wired',
-    mobility: 'No',
+    mobility: 'Yes (Aloha)',
     task: 'No task currently',
     robots: [
       { role: 'Leader', model: 'Used for 2m table', payload: '250', span: '1300', isUR: false },
       { role: 'Follower', model: 'ViperX', payload: '750', span: '1500', isUR: false }
     ],
-    specsRobots: [
-      { position: 'Leader 1', model: 'Widow X', payload: '250', span: '1300' },
-      { position: 'Follower 1', model: 'Widow X', payload: '250', span: '1300' },
-      { position: 'Leader 2', model: 'n/a', payload: '', span: '' },
-      { position: 'Follower 2', model: 'n/a', payload: '', span: '' }
-    ],
     defaultNotes: ['Need to check if the ROS topics are being recorded']
   },
   {
     id: 's2', name: 'Station 2', type: 'Single Arm Setup', subtitle: 'Old LeRobot', dual: false,
-    phase: 'OPERATIONAL',
+    state: 'OPERATIONAL',
     ip: '10.4.44.151',
     host: 'datacollection4 (dc4)',
     connection: 'Wired',
-    mobility: 'No',
+    mobility: 'Yes (Aloha)',
     task: 'PBS Bottle Task',
     robots: [
       { role: 'Leader', model: 'WidowX', payload: '250', span: '1300', isUR: false },
       { role: 'Follower', model: 'ViperX', payload: '750', span: '1500', isUR: false }
     ],
-    specsRobots: [
-      { position: 'Leader 1', model: 'Widow X', payload: '250', span: '1300' },
-      { position: 'Follower 1', model: 'Viper X', payload: '750', span: '1500' },
-      { position: 'Leader 2', model: 'n/a', payload: '250', span: '1300' },
-      { position: 'Follower 2', model: 'n/a', payload: '750', span: '1500' }
-    ],
     defaultNotes: ['Motors stiff / new motors ordered', 'Conveyor Belt']
   },
   {
     id: 's3', name: 'Station 3', type: 'Single Arm Setup', subtitle: 'Denso', dual: false,
-    phase: 'NOT OPERATIONAL',
+    state: 'NOT OPERATIONAL',
     ip: 'Offline, no IP',
     host: 'dednso',
     connection: 'Isolated',
-    mobility: 'Yes (Aloha)',
+    mobility: 'No',
     task: 'Currently not operational',
     robots: [
       { role: 'Leader', model: 'Denso', payload: '500', span: '685', isUR: false },
       { role: 'Follower', model: 'Denso', payload: '500', span: '685', isUR: false }
     ],
-    specsRobots: [
-      { position: 'Leader 1', model: 'Widow X', payload: '250', span: '1300' },
-      { position: 'Follower 1', model: 'Viper X', payload: '750', span: '1500' },
-      { position: 'Leader 2', model: 'n/a', payload: '250', span: '1300' },
-      { position: 'Follower 2', model: 'n/a', payload: '750', span: '1500' }
-    ],
     defaultNotes: []
   },
   {
     id: 's4', name: 'Station 4', type: 'Single Arm Setup', subtitle: 'Dev Workstation', dual: false,
-    phase: 'OPERATIONAL',
+    state: 'OPERATIONAL',
     ip: '10.4.47.202',
     host: 'dc6',
     connection: 'Isolated',
     mobility: 'No',
-    task: 'Testing (New v3 LeRobot)',
+    task: 'Testing (LeRobot v0.4.3)',
     robots: [
       { role: 'Leader 1', model: 'Piper', payload: '3000', span: '1000', isUR: false },
       { role: 'Leader 2', model: 'Gello', payload: '', span: '', isUR: false },
       { role: 'Follower', model: 'UR 7e', payload: '7500', span: '1700', isUR: true, urKey: 's4-follower' }
     ],
-    specsRobots: [
-      { position: 'Leader 1', model: 'Piper', payload: '3000', span: '1000' },
-      { position: 'Follower 1', model: 'UR7', payload: '7500', span: '1700' },
-      { position: 'Leader 2', model: 'n/a', payload: '', span: '' },
-      { position: 'Follower 2', model: 'n/a', payload: '', span: '' }
-    ],
     defaultNotes: ['2 followers tested, both working']
   },
   {
     id: 's5', name: 'Station 5', type: 'Dual Arm Setup', subtitle: 'v3 LeRobot', dual: true,
-    phase: 'NOT OPERATIONAL',
+    state: 'NOT OPERATIONAL',
     ip: '10.4.45.82',
     host: 'dc2',
     connection: 'Isolated',
@@ -875,17 +851,11 @@ var stations = [
       { role: 'Follower 1', model: 'UR 3e', payload: '7500', span: '1700', isUR: true, urKey: 's5-follower1' },
       { role: 'Follower 2', model: 'UR 3e', payload: '7500', span: '1700', isUR: true, urKey: 's5-follower2' }
     ],
-    specsRobots: [
-      { position: 'Leader 1', model: 'Piper', payload: '3000', span: '1000' },
-      { position: 'Follower 1', model: 'UR3', payload: '7500', span: '1700' },
-      { position: 'Leader 2', model: 'n/a', payload: '', span: '' },
-      { position: 'Follower 2', model: 'n/a', payload: '', span: '' }
-    ],
     defaultNotes: ['No current leaders assigned']
   },
   {
     id: 's6', name: 'Station 6', type: 'Dual Arm Setup', subtitle: '', dual: true,
-    phase: 'OPERATIONAL',
+    state: 'OPERATIONAL',
     ip: '10.4.44.47',
     host: 'dc8',
     connection: 'Isolated',
@@ -896,12 +866,6 @@ var stations = [
       { role: 'Leader 2', model: 'WidowX (current)', payload: '250', span: '1300', isUR: false },
       { role: 'Follower 1', model: 'UR 7e', payload: '7500', span: '1700', isUR: true, urKey: 's6-follower1' },
       { role: 'Follower 2', model: 'UR 7e', payload: '7500', span: '1700', isUR: true, urKey: 's6-follower2' }
-    ],
-    specsRobots: [
-      { position: 'Leader 1', model: 'Piper', payload: '3000', span: '1000' },
-      { position: 'Follower 1', model: 'UR3', payload: '7500', span: '1700' },
-      { position: 'Leader 2', model: 'n/a', payload: '', span: '' },
-      { position: 'Follower 2', model: 'n/a', payload: '', span: '' }
     ],
     defaultNotes: ['Alt: Piper (cartesian ctrl)', 'Alt: UR 3e (joint ctrl)', 'Alt: Gello (joint ctrl) planned']
   }
@@ -915,10 +879,49 @@ var currentDetailId = null;
 function getS(id) {
   if (!state[id]) {
     var station = stations.find(function(s) { return s.id === id; });
-    state[id] = { online: false, notes: station ? station.defaultNotes.slice() : [], last_changed: 0, robot_ips: {} };
+    state[id] = { online: false, notes: station ? station.defaultNotes.slice() : [], last_changed: 0, robot_ips: {}, station_ip: null, station_state: null };
   }
   if (!state[id].robot_ips) state[id].robot_ips = {};
   return state[id];
+}
+
+function getStationIp(id) {
+  var s = getS(id);
+  var station = stations.find(function(st) { return st.id === id; });
+  return s.station_ip || (station ? station.ip : 'Not assigned');
+}
+
+function getStationState(id) {
+  var s = getS(id);
+  var station = stations.find(function(st) { return st.id === id; });
+  return s.station_state || (station ? station.state : 'OPERATIONAL');
+}
+
+function saveStationIp(id, ip) {
+  var s = getS(id);
+  s.station_ip = ip.trim();
+  s.last_changed = Date.now();
+  state[id] = s;
+  saveStation(id);
+  renderAll();
+}
+
+function toggleStationState(id) {
+  var current = getStationState(id);
+  var s = getS(id);
+  s.station_state = (current === 'OPERATIONAL') ? 'NOT OPERATIONAL' : 'OPERATIONAL';
+  s.last_changed = Date.now();
+  state[id] = s;
+  saveStation(id);
+  renderAll();
+}
+
+function handleStationIpKey(e, id) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    var input = document.getElementById('station-ip-input-' + id);
+    if (input) saveStationIp(id, input.value);
+  }
 }
 
 function getRobotIp(stationId, urKey) {
@@ -964,7 +967,9 @@ function saveStation(id) {
     online: s.online,
     notes: s.notes,
     last_changed: s.last_changed,
-    robot_ips: s.robot_ips || {}
+    robot_ips: s.robot_ips || {},
+    station_ip: s.station_ip || null,
+    station_state: s.station_state || null
   }).then(function(res) {
     if (res.error) console.error('Save error:', res.error);
   });
@@ -1057,7 +1062,9 @@ async function loadFromSupabase() {
         online: row.online,
         notes: row.notes || [],
         last_changed: row.last_changed || 0,
-        robot_ips: row.robot_ips || {}
+        robot_ips: row.robot_ips || {},
+        station_ip: row.station_ip || null,
+        station_state: row.station_state || null
       };
     });
   }
@@ -1073,7 +1080,9 @@ sb.channel('stations-changes')
         online: row.online,
         notes: row.notes || [],
         last_changed: row.last_changed || 0,
-        robot_ips: row.robot_ips || {}
+        robot_ips: row.robot_ips || {},
+        station_ip: row.station_ip || null,
+        station_state: row.station_state || null
       };
       renderAll();
     }
@@ -1119,20 +1128,21 @@ function renderCard(station) {
     '<input class="note-input" id="note-input-' + station.id + '" type="text" placeholder="Add a note and press Enter..." onkeydown="handleNoteKey(event,\'' + station.id + '\')" onclick="event.stopPropagation()">' +
     '</div>';
 
-  var phaseColors = {
+  var stateColors = {
     'OPERATIONAL': { bg: 'rgba(34,197,94,0.1)', color: '#22c55e', border: 'rgba(34,197,94,0.15)' },
     'INTEGRATING': { bg: 'rgba(234,179,8,0.1)', color: '#eab308', border: 'rgba(234,179,8,0.15)' },
     'NOT OPERATIONAL': { bg: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'rgba(239,68,68,0.15)' }
   };
-  var pc = phaseColors[station.phase] || phaseColors['INTEGRATING'];
-  var phaseTag = '<span style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:' + pc.bg + ';color:' + pc.color + ';border:1px solid ' + pc.border + ';letter-spacing:0.5px;margin-left:8px;">' + station.phase + '</span>';
+  var currentState = getStationState(station.id);
+  var pc = stateColors[currentState] || stateColors['INTEGRATING'];
+  var stateTag = '<span onclick="event.stopPropagation(); toggleStationState(\'' + station.id + '\')" style="display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:' + pc.bg + ';color:' + pc.color + ';border:1px solid ' + pc.border + ';letter-spacing:0.5px;margin-left:8px;cursor:pointer;transition:all 0.2s;" title="Click to toggle state">' + currentState + '</span>';
 
   return '<div class="card ' + cls + '" onclick="handleCardClick(event,\'' + station.id + '\')">' +
     '<div class="card-header">' +
       '<div class="card-title-area">' +
         '<div class="robot-icon">' + icon + '</div>' +
         '<div>' +
-          '<div class="card-title">' + station.name + phaseTag + '</div>' +
+          '<div class="card-title">' + station.name + stateTag + '</div>' +
           subtitleHtml +
           '<div class="card-type">' + station.type + '</div>' +
         '</div>' +
@@ -1175,22 +1185,12 @@ function renderDetail(id) {
     'INTEGRATING': { color: '#eab308', bg: 'rgba(234,179,8,0.1)', border: 'rgba(234,179,8,0.2)' },
     'NOT OPERATIONAL': { color: '#ef4444', bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.2)' }
   };
-  var dpci = dpc[station.phase] || dpc['INTEGRATING'];
-  var phaseColor = dpci.color;
-  var phaseBg = dpci.bg;
-  var phaseBorder = dpci.border;
-
-  // Specs table rows
-  var specsRows = station.specsRobots.map(function(r) {
-    var payloadHtml = r.payload ? '<span class="payload-cell">' + r.payload + 'g</span>' : '<span style="color:#334155">-</span>';
-    var spanHtml = r.span ? '<span class="span-cell">' + r.span + 'mm</span>' : '<span style="color:#334155">-</span>';
-    return '<tr>' +
-      '<td>' + r.position + '</td>' +
-      '<td>' + r.model + '</td>' +
-      '<td>' + payloadHtml + '</td>' +
-      '<td>' + spanHtml + '</td>' +
-    '</tr>';
-  }).join('');
+  var currentState = getStationState(id);
+  var dpci = dpc[currentState] || dpc['INTEGRATING'];
+  var stateColor = dpci.color;
+  var stateBg = dpci.bg;
+  var stateBorder = dpci.border;
+  var currentIp = getStationIp(id);
 
   // Current robots table
   var currentRows = station.robots.map(function(r) {
@@ -1256,7 +1256,10 @@ function renderDetail(id) {
           '<div class="info-grid">' +
             '<div class="info-item">' +
               '<div class="info-label">IP Address</div>' +
-              '<div class="info-value ip">' + station.ip + '</div>' +
+              '<div class="ur-ip-edit-wrap" style="margin-top:0;">' +
+                '<input class="ur-ip-input" id="station-ip-input-' + id + '" type="text" value="' + (currentIp !== 'Not assigned' && currentIp !== 'Offline, no IP' ? currentIp : '') + '" placeholder="Enter IP..." onkeydown="handleStationIpKey(event,\'' + id + '\')" style="width:150px;">' +
+                '<button class="ur-ip-save-btn" onclick="var v=document.getElementById(\'station-ip-input-' + id + '\').value; saveStationIp(\'' + id + '\',v)">Save</button>' +
+              '</div>' +
             '</div>' +
             '<div class="info-item">' +
               '<div class="info-label">Hostname</div>' +
@@ -1267,8 +1270,8 @@ function renderDetail(id) {
               '<div class="info-value" style="color:' + (station.connection === 'Wired' ? 'var(--green)' : 'var(--yellow)') + ';">' + (station.connection || 'N/A') + '</div>' +
             '</div>' +
             '<div class="info-item">' +
-              '<div class="info-label">Phase</div>' +
-              '<div class="info-value"><span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;background:' + phaseBg + ';color:' + phaseColor + ';border:1px solid ' + phaseBorder + ';">' + station.phase + '</span></div>' +
+              '<div class="info-label">State</div>' +
+              '<div class="info-value"><span onclick="toggleStationState(\'' + id + '\')" style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;background:' + stateBg + ';color:' + stateColor + ';border:1px solid ' + stateBorder + ';cursor:pointer;transition:all 0.2s;" title="Click to toggle state">' + currentState + '</span></div>' +
             '</div>' +
             '<div class="info-item">' +
               '<div class="info-label">Current Task</div>' +
@@ -1294,14 +1297,6 @@ function renderDetail(id) {
           '<table class="detail-robot-table">' +
             '<tr><th>Role</th><th>Model</th><th>Payload</th><th>Span</th><th>IP Address</th></tr>' +
             currentRows +
-          '</table>' +
-        '</div>' +
-        // Reference specs from sheet
-        '<div class="detail-section">' +
-          '<div class="detail-section-title">Reference Specs (Sep 2024)</div>' +
-          '<table class="detail-robot-table">' +
-            '<tr><th>Position</th><th>Model</th><th>Payload</th><th>Span</th></tr>' +
-            specsRows +
           '</table>' +
         '</div>' +
         // Notes section
